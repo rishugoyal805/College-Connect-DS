@@ -52,10 +52,20 @@ User *UserManagement::signUp()
 {
     string username, password, email, bio;
     bool isPublic;
+
     while (true)
     {
         cout << "Enter username: ";
         cin >> username;
+
+        // Check for spaces in username
+        if (username.find(' ') != string::npos)
+        {
+            cout << "Usernames cannot contain spaces. Please try again." << endl;
+            continue;
+        }
+
+        // Validate if the username is unique
         if (validateUsername(username) == nullptr)
         {
             break;
@@ -65,12 +75,16 @@ User *UserManagement::signUp()
             cout << "Username already taken! Please try again." << endl;
         }
     }
+
     cout << "Enter password: ";
     cin >> password;
+
     while (true)
     {
         cout << "Enter email: ";
         cin >> email;
+
+        // Validate email format
         if (isValidEmail(email))
         {
             break;
@@ -80,17 +94,21 @@ User *UserManagement::signUp()
             cout << "Invalid email format! Please try again." << endl;
         }
     }
+
     cout << "Enter bio: ";
-    cin.ignore();
+    cin.ignore(); // Clear the buffer
     getline(cin, bio);
+
     while (true)
     {
         char choice;
         cout << "Do you want your profile to be public? (Y for Yes, N for No): ";
         cin >> choice;
+
+        // Validate public/private choice
         if (choice == 'y' || choice == 'Y' || choice == 'n' || choice == 'N')
         {
-            isPublic = (choice == 'y' || choice == 'Y') ? 1 : 0;
+            isPublic = (choice == 'y' || choice == 'Y') ? true : false;
             break;
         }
         else
@@ -98,9 +116,12 @@ User *UserManagement::signUp()
             cout << "Invalid input. Please enter 'Y' for Yes or 'N' for No." << endl;
         }
     }
+
+    // Create a new user and store in data structures
     User *newUser = new User(username, password, email, bio, isPublic);
     userCredentials[username] = {password, newUser};
     userProfiles.push_back(newUser);
+
     return newUser;
 }
 User *UserManagement::logIn(const string &username, const string &password)
