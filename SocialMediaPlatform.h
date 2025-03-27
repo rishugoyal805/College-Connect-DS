@@ -1,115 +1,289 @@
-# College Connect - A C++ Social Media Platform
+#ifndef SOCIAL_MEDIA_PLATFORM_H
+#define SOCIAL_MEDIA_PLATFORM_H
+#include <unordered_map>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <queue>
+#include <list>
+#include <set>
+#include <unistd.h>
+#include <windows.h>
+#include <algorithm>
 
-**[Repository Link](https://github.com/rishugoyal805/College_Connect)**
+using namespace std;
 
-"College Connect" is a robust and interactive social media platform designed for college students, implemented in **C++**. This project demonstrates advanced applications of **data structures** like graphs, hash tables, linked lists, and priority queues. Developed as a **third-semester Data Structures project**, it highlights functionalities such as **user management, community interactions, friend systems, messaging**, and **group management**.
+class User; // Forward declaration
 
----
+// User Class
+class User
+{
+private:
+    string username;
+    string password;
+    string email;
+    string bio;
+    bool isPublic;
 
-## Features
+public:
+    User(const string &uname, const string &pwd, const string &email, const string &bio, bool isPublic);
 
-### 1. User Management
-- **Registration & Authentication**: Secure login system using **hash tables** for efficient user verification.
-- **Profile Management**: Editable profiles stored in a **linked list**, enabling quick updates without performance trade-offs.
+    string getUsername();
+    string getEmail();
+    string getBio();
+    bool isProfilePublic();
+    bool validatePassword(const string &pwd);
 
-### 2. Community Interaction
-- **Post Management**: 
-  - Create, edit, and view text-based posts stored in **linked lists** or **dynamic arrays**.
-  - Threaded discussions with voting mechanisms for replies and posts.
-- **Trending Topics**: Tracks and highlights popular posts based on user engagement using a **priority queue**.
-- **Threaded Discussions**: Users can engage in meaningful conversations by commenting and replying to posts.
+    // Methods to update profile details
+    void updateBio(const string &newBio);
+    void updateEmail(const string &newEmail);
+    void updatePassword(const string &newPassword);
+    void updatePrivacy(bool newPrivacy);
+    void updateUsername(const string &newUsername);
+};
 
-### 3. Friend System
-- **Friendship Management**: Represented as a **graph** with users as nodes and friendships as edges.
-- **Friend Suggestions**: Utilizes **BFS/DFS algorithms** to suggest connections based on mutual friends.
-- **Mutual Friends Count**: Displays shared connections for better networking.
-- **Pending Requests**: Manage and view pending friend requests in a **queue**.
+class Comment
+{
+public:
+    string content;
+    User *author;
+    list<Comment> replies; // List of replies to this comment
 
-### 4. Messaging System
-- **Direct Messaging**: Queue-based structure for private message handling.
-- **Group Messaging**:
-  - Groups created among friends for shared interactions.
-  - Dictionary-like structures to manage groups and their members.
-- **Chat History**: Doubly linked lists for browsing past conversations.
+public:
+    Comment(User *author, const string &content) : author(author), content(content) {}
 
-### 5. Group Management
-- **Create and Join Groups**: Users can create and join groups for collaboration and discussions.
-- **Group Conversations**: Interactive messaging systems extend to group chats, ensuring a seamless experience.
+    string getContent() { return content; }
+    string getAuthor() { return author->getUsername(); }
 
----
+    list<Comment> &getReplies() { return replies; }
+    void addReply(User *replier, const string &replyContent);
+    void displayComment(int level = 0);
+};
 
-## Advanced Data Structures Used
-- **Graphs**: Representing relationships and performing traversal algorithms for suggestions and insights.
-- **Hash Tables**: Efficiently storing and retrieving user data for authentication.
-- **Queues**: Managing friend requests and messaging in order.
-- **Linked Lists**: Handling dynamic data such as posts and message histories.
-- **Priority Queues**: Highlighting trending topics based on engagement metrics.
+// MessageNode Class (For Linked List)
+class MessageNode
+{
+public:
+    User *sender;   // Pointer to the sender User
+    User *receiver; // Pointer to the receiver User
+    string message;
+    MessageNode *prev;
+    MessageNode *next;
 
----
+    MessageNode(User *sender, User *receiver, const string &message)
+        : sender(sender), receiver(receiver), message(message), prev(nullptr), next(nullptr) {}
+};
 
-## Getting Started
+// Doubly Linked List Class (Chat History)
+class DoublyLinkedList
+{
+private:
+    MessageNode *head;
+    MessageNode *tail;
 
-### Prerequisites
-- A C++ compiler (e.g., GCC, Clang)
-- Basic knowledge of graph traversal and file handling
+public:
+    DoublyLinkedList() : head(nullptr), tail(nullptr) {}
 
-### Installation
-1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/rishugoyal805/College_Connect.git
-   cd College_Connect
-   ```
+    ~DoublyLinkedList()
+    {
+        MessageNode *current = head;
+        while (current)
+        {
+            MessageNode *nextNode = current->next;
+            delete current;
+            current = nextNode;
+        }
+    }
 
-2. **Compile the Program**  
-   ```bash
-   g++ -o college_connect SocialMediaPlatform.cpp
-   ```
+    void append(User *sender, User *receiver, const string &message)
+    {
+        MessageNode *newNode = new MessageNode(sender, receiver, message);
+        if (!head)
+        {
+            head = tail = newNode;
+        }
+        else
+        {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+    }
 
-3. **Run the Platform**  
-   ```bash
-   ./college_connect
-   ```
+    void display(User *user1, User *user2) const
+    {
+        MessageNode *current = head;
+        bool foundMessages = false;
 
----
+        while (current)
+        {
+            if (current->sender == user1 && current->receiver == user2)
+            {
+                cout << "To " << user2->getUsername() << ": " << current->message << endl;
+                foundMessages = true;
+            }
+            else if (current->sender == user2 && current->receiver == user1)
+            {
+                cout << "From " << user2->getUsername() << ": " << current->message << endl;
+                foundMessages = true;
+            }
+            current = current->next;
+        }
 
-## Usage
+        if (!foundMessages)
+        {
+            cout << "No messages found between " << user1->getUsername() << " and " << user2->getUsername() << "!" << endl;
+        }
+    }
 
-### Initial Setup
-- Use the provided `sample-data.txt` file to pre-load the system with default users, posts, and relationships.
-- Customize or prepare your own data file as per the format for personalized testing.
+    void display2() const
+    {
+        MessageNode *current = head;
+        if (!current)
+        {
+            cout << "No messages in this group." << endl;
+            return;
+        }
 
-### Interaction Workflow
-1. **Login Credentials**:  
-   - **Username**: `student01`  
-   - **Password**: `connect123`
-2. **Explore Modules**:  
-   - Register, login, and manage your profile.  
-   - Create, interact with, and explore posts.  
-   - Send friend requests, view suggestions, and manage connections.  
-   - Participate in private or group messaging.
+        while (current)
+        {
+            cout << "From " << current->sender->getUsername() << ": " << current->message << endl;
+            current = current->next;
+        }
+    }
+    MessageNode *getHead() const
+    {
+        return head;
+    }
+};
 
----
+// Group Class for Group Messaging
+class Group
+{
+public:
+    string groupId;             // Unique identifier for the group
+    string groupName;           // Name of the group
+    set<User *> participants;   // Users in the group
+    DoublyLinkedList messageHistory; // Group chat history
 
-## File Structure
-- **SocialMediaPlatform.cpp**: Core program logic and entry point.
-- **SocialMediaPlatformHeader.h**: Modular header files defining classes and functionalities.
-- **sample-data.txt**: Example data for testing the platform.
-- **README.md**: Documentation for understanding and navigating the project.
+    // Default constructor
+    Group() : groupId(""), groupName("") {}
 
----
+    // Parameterized constructor
+    Group(const string &groupId, const string &groupName)
+        : groupId(groupId), groupName(groupName) {}
 
-## Customization
-- Modify `sample-data.txt` to include new users, posts, and relationships for testing purposes.
-- Extend or tweak algorithms in the provided `.cpp` files to enhance platform functionality.
+    void addUser(User *user)
+    {
+        participants.insert(user);
+    }
 
----
+    void removeUser(User *user)
+    {
+        participants.erase(user);
+    }
 
-## Troubleshooting
-- **Login Issues**: Ensure the credentials are correct and case-sensitive.
-- **Data Loading Errors**: Validate the structure of your custom data file.
-- **Group Management Errors**: Ensure the user creating a group is a registered and authenticated user.
+    bool isUserInGroup(User *user) const
+    {
+        return participants.find(user) != participants.end();
+    }
 
----
+    // Add a message to the group's message history
+    void addMessage(User *sender, const string &message)
+    {
+        messageHistory.append(sender, nullptr, message);
+    }
+};
 
-## Contact
-For queries, suggestions, or contributions, reach out at **[rishugoyal16800@gmail.com](mailto:rishugoyal16800@gmail.com)**.
+// User Management Class
+class UserManagement
+{
+private:
+    unordered_map<string, pair<string, User *>> userCredentials; // Hashmap for user credentials and pointers to profiles
+    list<User *> userProfiles;                                                  // Linked list for storing user profile information
+
+public:
+    User *signUp();
+    User *logIn(const string &username, const string &password);
+    void updateUserProfile(User *user, const string &newBio, const string &newEmail);
+    void displayProfile(User *user);
+    User *findUserByUsername(const string &username);
+    void displayAllUsers();
+    void editProfile(User *user);
+    User *validateUsername(const string &username);
+    bool isValidEmail(const string &email);
+
+    friend class FriendSystem;
+    friend class MessagingSystem;
+};
+
+// Post Management Class
+class PostManagement
+{
+public:
+    // Use unordered_map or map as per your requirement, here's using unordered_map
+    map<User *, list<string>> userPosts;
+    map<string, vector<Comment *>> postComments; // Assuming Comment is defined somewhere
+
+    void createPost(User *user, const string &content);
+    void viewUserPosts(User *user);
+    void viewFriendsPosts(User *user, const map<User *, list<User *>> &friends);
+    void viewPublicPosts(const map<User *, list<string>> &userPosts, User *currentUser); // Change parameter to match internal structure
+    void addComment(User *user, const string &postContent, const string &commentContent);
+    void addReplyToComment(User *user, const string &postContent, Comment *parentComment, const string &replyContent);
+    void displayPostWithComments(const string &postContent);
+    vector<string> getAllPosts();
+    void viewPostComments(const string &postContent, User *currentUser);
+    void addCommentOrReply(Comment &parentComment, User *currentUser);
+    void interactiveCommentSection(User *currentUser);
+};
+
+// Friend System Class
+class FriendSystem
+{
+private:
+    map<User *, list<User *>> friends; // Map storing each user and their list of friends
+    map<User *, list<User *>> pendingRequests; // To store pending friend requests
+
+public:
+// Get the entire friends list (for internal use or testing)
+    map<User *, list<User *>> &getFriendsList();
+void addFriend(User *user, User *friendUser);
+bool viewFriends(User *user);
+void suggestFriendsBFS(User *user);
+void suggestFriendsDFS(User *user);
+void dfs(User *user, map<User *, bool> &visited, map<User *, int> &mutualCount);
+void displayPendingRequests(User *user);
+void removeFriend(User *user1, User *user2);
+void mutualFriendsCount(User *user1, User *user2);
+};
+
+// Messaging System Class (One-on-One and Group Messaging)
+class MessagingSystem
+{
+private:
+    map<User *, queue<pair<User *, string>>> userMessages;
+    map<User *, DoublyLinkedList> chatHistory; // One-on-one chat history
+    map<string, Group> groups;            // Group messaging system
+
+public:
+    void sendMessage(User *fromUser, User *toUser, const string &message);
+    void viewNewMessages(User *user);
+    void viewChatHistory(User *recipient, User *friendUser);
+
+    // Group-related functions
+    void createGroup(User *currentUser, UserManagement &userManagement, FriendSystem &friendSystem, MessagingSystem &messagingSystem);
+    // void createGroup(const string &groupId, const string &groupName, const set<User *> &initialParticipants);
+    bool sendMessageToGroup(User *fromUser, const string &groupId, const string &message);
+    void viewGroupChatHistory(const string &groupName, User *currentUser);
+    bool addUserToGroup(const string &groupName, User *user);
+    bool removeUserFromGroup(const string &groupId, User *user);
+    bool isUserInGroup(const string &groupName, User *user);
+    const map<string, Group> &getGroups() const
+    {
+        return groups;
+    }
+};
+
+#endif // SOCIAL_MEDIA_PLATFORM_H
